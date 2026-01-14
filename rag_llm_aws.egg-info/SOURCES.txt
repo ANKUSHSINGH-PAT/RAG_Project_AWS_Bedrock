@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+setup.py
+QA_System/__init__.py
+QA_System/ingestion.py
+QA_System/retrieval.py
+rag_llm_aws.egg-info/PKG-INFO
+rag_llm_aws.egg-info/SOURCES.txt
+rag_llm_aws.egg-info/dependency_links.txt
+rag_llm_aws.egg-info/requires.txt
+rag_llm_aws.egg-info/top_level.txt

@@ -1,0 +1,14 @@
+boto3
+langchain
+langchain-core
+langchain-aws
+langchain-community
+chromadb
+sentence-transformers
+python-dotenv
+setuptools
+streamlit
+langchain_text_splitters
+pypdf
+boto3
+faiss-cpu
