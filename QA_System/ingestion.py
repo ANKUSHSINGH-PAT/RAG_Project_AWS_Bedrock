@@ -37,7 +37,7 @@ def data_ingestion():
     print(f"Number of chunks: {len(docs)}")
     return docs
 
-def get_vecrtorstore(docs):
+def get_vectorstore(docs):
    
     vectorstore = FAISS.from_documents(docs,embedding=bedrock_embedding)
     vectorstore.save_local("faiss_index")
@@ -48,4 +48,4 @@ def get_vecrtorstore(docs):
 
 if __name__ == "__main__":
     docs = data_ingestion()
-    get_vecrtorstore(docs)  # Replace None with actual embeddings instance
+    get_vectorstore(docs)  # Replace None with actual embeddings instance

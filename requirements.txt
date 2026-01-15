@@ -12,3 +12,5 @@ langchain_text_splitters
 pypdf
 boto3
 faiss-cpu
+fastapi
+uvicorn

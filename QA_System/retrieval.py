@@ -4,7 +4,7 @@ from langchain_aws import BedrockEmbeddings
 from langchain_aws import BedrockLLM
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from QA_System.ingestion import get_vecrtorstore
+from QA_System.ingestion import get_vectorstore
 
 # -------------------------------
 # Bedrock Runtime Client
@@ -41,7 +41,7 @@ def get_llama_llm():
         model_id="meta.llama3-8b-instruct-v1:0",
         model_kwargs={
             "temperature": 0,
-            "max_tokens": 1000
+            "max_tokens": 512
         },
     )
     return llm
