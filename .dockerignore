@@ -1,2 +1,6 @@
 env
 build
+data
+dist
+output
+test.json
