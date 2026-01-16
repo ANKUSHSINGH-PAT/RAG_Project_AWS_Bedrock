@@ -15,4 +15,3 @@ faiss-cpu
 fastapi
 uvicorn
 
--e .
