@@ -14,3 +14,5 @@ boto3
 faiss-cpu
 fastapi
 uvicorn
+
+-e .
