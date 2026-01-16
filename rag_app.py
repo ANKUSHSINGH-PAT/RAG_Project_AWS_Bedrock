@@ -18,7 +18,7 @@ def load_resources():
 vectorstore, llm = load_resources()
 
 # ------------------ User Input ------------------
-user_query = st.text_input("Enter your question")
+user_query = st.text_input("Enter your question?")
 
 if user_query:
     with st.spinner("Generating answer..."):
