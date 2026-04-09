@@ -1,17 +1,34 @@
+# Core AWS and LangChain dependencies
 boto3
 langchain
 langchain-core
 langchain-aws
 langchain-community
-chromadb
-sentence-transformers
-python-dotenv
-setuptools
-streamlit
-langchain_text_splitters
-pypdf
-boto3
+langchain-text-splitters
+
+# Vector store and embeddings
 faiss-cpu
+sentence-transformers
+
+# PDF processing
+pypdf
+
+# Numerical computing (required by langchain-community)
+numpy
+
+# Web framework
+streamlit
 fastapi
 uvicorn
 
+# Database
+chromadb
+
+# Environment variables
+python-dotenv
+
+# Build tools
+setuptools
+
+# Web search for Corrective RAG
+duckduckgo-search
