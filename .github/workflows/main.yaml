@@ -57,7 +57,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # ✅ Login to ECR
+      # ✅ Login to ECR 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
@@ -65,7 +65,7 @@ jobs:
       - name: Build Docker image
         run: docker build -t my-app .
 
-      # ✅ Tag Image (IMPORTANT FIX)
+      # ✅ Tag Image (IMPORTANT FIX) .
       - name: Tag Docker image
         run: |
           docker tag my-app:latest ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
@@ -74,3 +74,5 @@ jobs:
       - name: Push Docker image to ECR
         run: |
           docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
+
+        
