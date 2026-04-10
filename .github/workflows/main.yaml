@@ -48,7 +48,8 @@ jobs:
           echo "REPOSITORY=${{ secrets.ECR_REPOSITORY }}"
           echo "REGION=${{ secrets.AWS_REGION }}"
 
-      # ✅ Configure AWS
+      # ✅ Configure AWS credentials
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
