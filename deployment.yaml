@@ -5,7 +5,7 @@ metadata:
   labels:
     app: rag-app
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: rag-app
@@ -21,11 +21,11 @@ spec:
         - containerPort: 8501
         resources:
           requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
             memory: "512Mi"
             cpu: "500m"
-          limits:
-            memory: "1Gi"
-            cpu: "1"
         env:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
