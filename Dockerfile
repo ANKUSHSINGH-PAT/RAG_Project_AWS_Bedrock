@@ -1,10 +1,13 @@
-FROM python:3.9-slim-buster
+FROM python:3.10-slim
 
-WORKDIR /rag_app
+WORKDIR /app
 
-COPY . /rag_app
+# Copy entire project
+COPY . /app/
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
+
+RUN python -m nltk.downloader stopwords wordnet
 
 EXPOSE 8501
 
