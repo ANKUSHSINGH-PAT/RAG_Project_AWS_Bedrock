@@ -6,6 +6,7 @@ on:
       - main
     paths-ignore:
       - "README.md"
+      - "*.md"
 
 jobs:
   continuous-integration:
@@ -41,7 +42,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 🔥 Debug (VERY IMPORTANT)
+      # 🔥 Debug Secrets
       - name: Debug Secrets
         run: |
           echo "REGISTRY=${{ secrets.ECR_REGISTRY }}"
@@ -49,7 +50,6 @@ jobs:
           echo "REGION=${{ secrets.AWS_REGION }}"
 
       # ✅ Configure AWS credentials
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -63,16 +63,106 @@ jobs:
 
       # ✅ Build Docker Image
       - name: Build Docker image
-        run: docker build -t my-app .
+        run: docker build -t rag-app .
 
-      # ✅ Tag Image (IMPORTANT FIX) .
+      # ✅ Tag Image
       - name: Tag Docker image
         run: |
-          docker tag my-app:latest ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
+          docker tag rag-app:latest ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
+          docker tag rag-app:latest ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
 
       # ✅ Push Image
       - name: Push Docker image to ECR
         run: |
           docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
 
-        
+  kubernetes-deployment:
+    runs-on: ubuntu-latest
+    name: Deploy to Kubernetes
+    needs: continuous-deployment
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # ✅ Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # ✅ Install kubectl
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      # ✅ Configure kubectl for EKS
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
+
+      # ✅ Verify kubectl connection
+      - name: Verify kubectl connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      # ✅ Create/Update AWS credentials secret
+      - name: Create AWS credentials secret
+        run: |
+          kubectl create secret generic aws-credentials \
+            --from-literal=AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            --from-literal=AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # ✅ Update deployment image
+      - name: Update deployment image
+        run: |
+          kubectl set image deployment/rag-app \
+            rag-app=${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }} \
+            --record
+
+      # ✅ Apply deployment (if not exists)
+      - name: Apply Kubernetes deployment
+        run: |
+          kubectl apply -f deployment.yaml
+
+      # ✅ Wait for rollout
+      - name: Wait for deployment rollout
+        run: |
+          kubectl rollout status deployment/rag-app --timeout=5m
+
+      # ✅ Verify deployment
+      - name: Verify deployment
+        run: |
+          kubectl get deployments
+          kubectl get pods
+          kubectl get services
+
+      # ✅ Get service URL
+      - name: Get service URL
+        run: |
+          echo "Waiting for LoadBalancer to be ready..."
+          sleep 30
+          kubectl get service rag-app-service
+          EXTERNAL_IP=$(kubectl get service rag-app-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          if [ -z "$EXTERNAL_IP" ]; then
+            EXTERNAL_IP=$(kubectl get service rag-app-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          fi
+          echo "Application URL: http://$EXTERNAL_IP"
+          echo "APPLICATION_URL=http://$EXTERNAL_IP" >> $GITHUB_ENV
+
+      # ✅ Deployment summary
+      - name: Deployment Summary
+        run: |
+          echo "🚀 Deployment completed successfully!"
+          echo "📦 Image: ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}"
+          echo "🌐 Application URL: ${{ env.APPLICATION_URL }}"
+          echo "📊 Deployment status:"
+          kubectl get deployment rag-app -o wide
+
+# Made with Bob

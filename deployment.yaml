@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rag-app
+  labels:
+    app: rag-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rag-app
+  template:
+    metadata:
+      labels:
+        app: rag-app
+    spec:
+      containers:
+      - name: rag-app
+        image: 905418389834.dkr.ecr.us-east-1.amazonaws.com/aws_rag_agent
+        ports:
+        - containerPort: 8501
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: AWS_SECRET_ACCESS_KEY
+        - name: AWS_DEFAULT_REGION
+          value: "us-east-1"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rag-app-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: rag-app
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8501
+
+# Made with Bob
