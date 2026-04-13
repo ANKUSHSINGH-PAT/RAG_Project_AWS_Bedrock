@@ -100,7 +100,7 @@ jobs:
         with:
           version: 'latest'
 
-      # ✅ Configure kubectl for EKS
+      # ✅ Configure kubectl for EKS .
       - name: Update kubeconfig for EKS
         run: |
           aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
