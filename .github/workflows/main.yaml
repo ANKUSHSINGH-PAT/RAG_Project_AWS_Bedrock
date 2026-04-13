@@ -119,17 +119,28 @@ jobs:
             --from-literal=AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      # ✅ Update deployment image
-      - name: Update deployment image
+      # ✅ Check if deployment exists
+      - name: Check if deployment exists
+        id: check_deployment
         run: |
-          kubectl set image deployment/rag-app \
-            rag-app=${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }} \
-            --record
+          if kubectl get deployment rag-app 2>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "✅ Deployment exists, will update image"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "📦 Deployment doesn't exist, will create new"
+          fi
 
-      # ✅ Apply deployment (if not exists)
+      # ✅ Apply deployment (create or update)
       - name: Apply Kubernetes deployment
         run: |
           kubectl apply -f deployment.yaml
+
+      # ✅ Update deployment image to specific commit SHA
+      - name: Update deployment image
+        run: |
+          kubectl set image deployment/rag-app \
+            rag-app=${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
 
       # ✅ Wait for rollout
       - name: Wait for deployment rollout
