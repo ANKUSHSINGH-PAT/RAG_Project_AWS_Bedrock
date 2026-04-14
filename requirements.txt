@@ -32,3 +32,9 @@ setuptools
 
 # Web search for Corrective RAG
 duckduckgo-search
+
+# Optional: For better performance with large documents
+
+fastapi
+
+ddgs

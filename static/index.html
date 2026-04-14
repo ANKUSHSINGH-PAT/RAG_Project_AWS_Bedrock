@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RAG Chat</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #0e1117;
+            color: white;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .chat-box {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #333;
+            padding: 10px;
+            border-radius: 10px;
+            background: #1e1e1e;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .user {
+            background: #2563eb;
+            text-align: right;
+        }
+
+        .bot {
+            background: #374151;
+            text-align: left;
+        }
+
+        .input-area {
+            margin-top: 10px;
+            display: flex;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        button {
+            padding: 10px;
+            margin-left: 10px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .loader {
+            font-style: italic;
+            color: gray;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <h2>📄 RAG with AWS Bedrock</h2>
+
+    <div class="chat-box" id="chat"></div>
+
+    <div class="input-area">
+        <input id="query" placeholder="Ask your question..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+async function sendMessage() {
+    let input = document.getElementById("query");
+    let query = input.value;
+    if (!query) return;
+
+    let chat = document.getElementById("chat");
+
+    // User message
+    chat.innerHTML += `<div class="message user">${query}</div>`;
+
+    // Loader
+    let loaderId = "loader-" + Date.now();
+    chat.innerHTML += `<div id="${loaderId}" class="message bot loader">Thinking...</div>`;
+
+    input.value = "";
+
+    try {
+        let res = await fetch("http://127.0.0.1:8000/ask", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                query: query,
+                mode: "corrective"
+            })
+        });
+
+        let data = await res.json();
+
+        document.getElementById(loaderId).remove();
+
+        chat.innerHTML += `<div class="message bot">${data.answer}</div>`;
+        chat.scrollTop = chat.scrollHeight;
+
+    } catch (err) {
+        document.getElementById(loaderId).innerText = "Error occurred";
+    }
+}
+</script>
+
+</body>
+</html>
