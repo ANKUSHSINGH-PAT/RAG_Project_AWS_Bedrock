@@ -13,11 +13,11 @@ COPY requirements.txt /app/
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy entire project
+# Copy entire project including data and faiss_index
 COPY . /app/
 
-# Download NLTK data if needed (optional, only if your code uses it)
-# RUN python -c "import nltk; nltk.download('stopwords'); nltk.download('wordnet')" || true
+# Create data directory if it doesn't exist
+RUN mkdir -p /app/data /app/faiss_index
 
 EXPOSE 8501
 

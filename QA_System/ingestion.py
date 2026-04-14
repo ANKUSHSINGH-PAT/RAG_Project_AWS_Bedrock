@@ -21,11 +21,23 @@ bedrock_embedding=BedrockEmbeddings(
 def data_ingestion():
     documents = []
 
+    # Check if data directory exists
+    if not os.path.exists('data/'):
+        print("Warning: 'data/' directory not found. Returning empty documents.")
+        return []
+
     # Loop through all PDFs in the 'data' directory
     for file_name in os.listdir('data/'):
         if file_name.endswith('.pdf'):
-            loader = PyPDFLoader(f'data/{file_name}')
-            documents.extend(loader.load())
+            try:
+                loader = PyPDFLoader(f'data/{file_name}')
+                documents.extend(loader.load())
+            except Exception as e:
+                print(f"Error loading {file_name}: {e}")
+
+    if not documents:
+        print("Warning: No PDF documents found in 'data/' directory")
+        return []
 
     # Split the documents into chunks
     text_splitter = RecursiveCharacterTextSplitter(
@@ -38,10 +50,35 @@ def data_ingestion():
     return docs
 
 def get_vectorstore(docs):
-   
-    vectorstore = FAISS.from_documents(docs,embedding=bedrock_embedding)
-    vectorstore.save_local("faiss_index")
-    return vectorstore
+    # Try to load existing FAISS index first
+    if os.path.exists("faiss_index/index.faiss"):
+        print("Loading existing FAISS index...")
+        try:
+            vectorstore = FAISS.load_local(
+                "faiss_index",
+                bedrock_embedding,
+                allow_dangerous_deserialization=True
+            )
+            print("Successfully loaded existing FAISS index")
+            return vectorstore
+        except Exception as e:
+            print(f"Error loading existing index: {e}")
+    
+    # If no existing index or docs provided, create new one
+    if docs and len(docs) > 0:
+        print("Creating new FAISS index from documents...")
+        vectorstore = FAISS.from_documents(docs, embedding=bedrock_embedding)
+        vectorstore.save_local("faiss_index")
+        return vectorstore
+    else:
+        # Create a dummy vectorstore with sample text if no docs available
+        print("Warning: No documents available. Creating minimal vectorstore.")
+        from langchain.schema import Document
+        sample_docs = [
+            Document(page_content="This is a sample document for the RAG system. Please upload your PDF files to the data/ directory.", metadata={"source": "sample"})
+        ]
+        vectorstore = FAISS.from_documents(sample_docs, embedding=bedrock_embedding)
+        return vectorstore
 
 
 
